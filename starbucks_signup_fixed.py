@@ -50,8 +50,10 @@ from pathlib import Path
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from webdriver_manager.chrome import ChromeDriverManager
 
 SIGNUP_URL = "https://www.starbucks.com/account/create"
 CSV_FILE = Path(__file__).with_name("users.csv")
@@ -81,25 +83,29 @@ def find_chrome():
     return None
 
 def fresh_driver(headless=False):
-    profile = tempfile.mkdtemp(prefix="chrome_profile_")
-    opts = Options()
-    binary = find_chrome()
-    if binary:
-        opts.binary_location = binary
-    opts.add_argument(f"--user-data-dir={profile}")
-    opts.add_argument("--no-first-run")
-    opts.add_argument("--no-default-browser-check")
-    opts.add_argument("--disable-extensions")
-    opts.add_argument("--window-size=1280,900")
-    if headless:
-        opts.add_argument("--headless=new")
-    if sys.platform.startswith("linux"):
-        opts.add_argument("--no-sandbox")
-        opts.add_argument("--disable-dev-shm-usage")
-        opts.add_argument("--disable-gpu")
-    driver = webdriver.Chrome(options=opts)
-    driver.set_page_load_timeout(60)
-    return driver, profile
+  profile = tempfile.mkdtemp(prefix="chrome_profile_")
+  opts = Options()
+  binary = find_chrome()
+  if binary:
+    opts.binary_location = binary
+  opts.add_argument(f"--user-data-dir={profile}")
+  opts.add_argument("--no-first-run")
+  opts.add_argument("--no-default-browser-check")
+  opts.add_argument("--disable-extensions")
+  opts.add_argument("--window-size=1280,900")
+  if headless:
+    opts.add_argument("--headless=new")
+  if sys.platform.startswith("linux"):
+    opts.add_argument("--no-sandbox")
+    opts.add_argument("--disable-dev-shm-usage")
+    opts.add_argument("--disable-gpu")
+
+  # Use webdriver-manager to automatically match the exact installed Chrome version
+  service = Service(ChromeDriverManager().install())
+  driver = webdriver.Chrome(service=service, options=opts)
+
+  driver.set_page_load_timeout(60)
+  return driver, profile
 
 # ---------------------------------------------------------------- inspection
 

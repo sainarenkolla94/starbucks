@@ -27,16 +27,14 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install selenium
+          pip install -r requirements.txt
 
       - name: Set up Google Chrome
         uses: browser-actions/setup-chrome@v1
-        with:
-          install-chromedriver: true
+        # Note: we don't need install-chromedriver: true anymore because webdriver-manager handles it
 
       - name: Extract Email from Webhook Payload or Manual Input
         run: |
-          # Get email from repository_dispatch (webhook) or workflow_dispatch (manual UI)
           EMAIL="${{ github.event.client_payload.email }}"
           if [ -z "$EMAIL" ]; then
             EMAIL="${{ github.event.inputs.email }}"
@@ -44,13 +42,8 @@ jobs:
 
           echo "Target Email received: $EMAIL"
 
-          # Create a dynamic users.csv on the fly for this single run
-          # (Modify first_name, last_name, and password as needed or keep them default)
           echo "first_name,last_name,email,password" > users.csv
           echo "John,Doe,$EMAIL,Sainaren@94" >> users.csv
-
-          echo "Generated temporary users.csv:"
-          cat users.csv
 
       - name: Run Starbucks Automation Script
         run: python starbucks_signup_fixed.py --headless --limit 1
